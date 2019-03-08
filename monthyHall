@@ -1,0 +1,67 @@
+<?php
+//Monthy Hall paradox calculation.
+//It is allways one should change the door. 
+
+define("LOSE", false);
+define("WIN", true);
+$changedAndWon = $stayedAndWon = $lost = $changeDoorDecision = 0;
+
+for ($i = 1; $i <= 1000; $i++) {
+	
+	$doors = array(1 => LOSE, 2 => LOSE, 3 => LOSE);
+	$doors[ rand(1, 3) ] = WIN;
+
+	//first choice
+	$chooseOne = rand(1, 3);
+	$otherDoors = array_values(array_diff( array(1, 2, 3), array($chooseOne)));
+	if (count($otherDoors) != 2) die("Wrong other doors choose");
+
+	//opening one door
+	$otherDoor = openOneDoor($doors, $otherDoors, $chooseOne);
+	if (!is_bool($doors[$otherDoor]) || !is_bool($doors[$chooseOne])) die("Wrong door results!");
+	
+	//last decision
+	$changeDoor = !!rand(0, 1);
+	
+	//calculations
+	$result = ($changeDoor ? $doors[$otherDoor] : $doors[$chooseOne]);
+	if ($changeDoor) $changeDoorDecision++;
+	
+	$victory = ($result === WIN);
+	if ($victory) {
+		if ($changeDoor) $changedAndWon++;
+		else $stayedAndWon++;
+	}
+	else $lost++;
+	
+}
+
+echo "There are ".($stayedAndWon + $changedAndWon)." victories and $lost loses.<br>";
+echo "The decision to change the door was made $changeDoorDecision times.<br>";
+echo "Stayed the same door and won $stayedAndWon times.<br>";
+echo "Changed the door and won $changedAndWon times.<br>";
+
+function openOneDoor(&$doors, $otherDoors, $chooseOne){
+	
+	if (array_search($chooseOne, $otherDoors)) die('Wrong first door choose');
+
+	if ($doors[$otherDoors[0]]) {
+		unset($doors[$otherDoors[1]]);
+		$otherDoor = $otherDoors[0];
+	}
+	elseif ($doors[$otherDoors[1]]) {
+		unset($doors[$otherDoors[0]]);
+		$otherDoor = $otherDoors[1];
+	}
+	else {
+		$chooseDoor2open = rand(0, 1);
+		$door2open = $otherDoors[$chooseDoor2open];
+		unset($doors[$door2open]);
+		$otherDoor = $otherDoors[intval(!$chooseDoor2open)];
+	}
+	
+	if (count($doors) > 2) die('To much doors after one door is open');
+	if ($otherDoor == $chooseOne) die('The chosen and other doors are equal');
+	
+	return $otherDoor;
+}
